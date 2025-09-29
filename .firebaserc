@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "abric-auth"
+  },
+  "targets": {},
+  "etags": {}
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "username": "natgeo",
+    "full_name": "National Geographic",
+    "followers_count": 235000000,
+    "verified": true,
+    "description": "Natural photography"
+  },
+  {
+    "username": "earthpix",
+    "full_name": "Earth Pictures",
+    "followers_count": 8900000,
+    "verified": true,
+    "description": "Nature and geography"
+  },
+  {
+    "username": "bbcearth",
+    "full_name": "BBC Earth",
+    "followers_count": 4200000,
+    "verified": true,
+    "description": "Wildlife documentary"
+  },
+  {
+    "username": "natgeotravel",
+    "full_name": "National Geographic Travel",
+    "followers_count": 8900000,
+    "verified": true,
+    "description": "Travel photography"
+  },
+  {
+    "username": "visualsoflife",
+    "full_name": "Visuals of Life",
+    "followers_count": 3200000,
+    "verified": true,
+    "description": "Life photography"
+  },
+  {
+    "username": "beautifuldestinations",
+    "full_name": "Beautiful Destinations",
+    "followers_count": 15600000,
+    "verified": true,
+    "description": "Travel destinations"
+  },
+  {
+    "username": "tourismboard",
+    "full_name": "Tourism Board",
+    "followers_count": 2100000,
+    "verified": false,
+    "description": "World travel"
+  },
+  {
+    "username": "earthfocus",
+    "full_name": "Earth Focus",
+    "followers_count": 1800000,
+    "verified": false,
+    "description": "Environmental photography"
+  }
+]

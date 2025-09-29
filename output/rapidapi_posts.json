@@ -1,0 +1,35 @@
+[
+  {
+    "id": "test_post_1",
+    "shortcode": "test123",
+    "caption": "Test post 1 - This is a sample Instagram post for testing purposes.",
+    "image_url": "https://picsum.photos/1200/1200?random=1",
+    "likes_count": 150,
+    "comments_count": 25,
+    "timestamp": "2025-09-29T09:27:43.483998",
+    "permalink": "https://www.instagram.com/p/test123/",
+    "media_type": 1
+  },
+  {
+    "id": "test_post_2",
+    "shortcode": "test456",
+    "caption": "Test post 2 - Another sample post with different content.",
+    "image_url": "https://picsum.photos/1200/1200?random=2",
+    "likes_count": 89,
+    "comments_count": 12,
+    "timestamp": "2025-09-29T09:27:43.484016",
+    "permalink": "https://www.instagram.com/p/test456/",
+    "media_type": 1
+  },
+  {
+    "id": "test_post_3",
+    "shortcode": "test789",
+    "caption": "Test post 3 - Low resolution image for testing.",
+    "image_url": "https://picsum.photos/400/400?random=3",
+    "likes_count": 50,
+    "comments_count": 5,
+    "timestamp": "2025-09-29T09:27:43.484019",
+    "permalink": "https://www.instagram.com/p/test789/",
+    "media_type": 1
+  }
+]
