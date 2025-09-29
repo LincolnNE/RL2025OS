@@ -1,0 +1,51 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Firebase credentials
+firebase-adminsdk-*.json
+serviceAccountKey.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Downloaded content
+output/images/
+output/downloads/
+temp_downloads/
+
+# Logs
+*.log
+logs/
+
+# Sensitive data
+*.key
+*.pem
+*.p8
