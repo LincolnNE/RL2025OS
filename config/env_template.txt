@@ -1,4 +1,0 @@
-# Environment variables template
-RAPIDAPI_KEY=your_rapidapi_key_here
-FIREBASE_PROJECT_ID=your_project_id
-# ... add your real values here

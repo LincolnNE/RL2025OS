@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Firebase Storage 규칙
+service firebase.storage {
+  match /b/{bucket}/o {
+    // instagram_media 폴더 하위의 모든 파일
+    match /instagram_media/{userId}/{filename} {
+      // 모든 읽기/쓰기 허용 (테스트용)
+      // 프로덕션에서는 인증된 사용자만 접근하도록 수정 필요
+      allow read, write: if true;
+    }
+    
+    // 기타 파일들
+    match /{allPaths=**} {
+      // 기본적으로 모든 접근 허용 (테스트용)
+      allow read, write: if true;
+    }
+  }
+}

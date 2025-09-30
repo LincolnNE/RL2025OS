@@ -1,205 +1,256 @@
-# Instagram Tools
+# Instagram Image Fetcher
 
-A comprehensive toolset for downloading and managing Instagram content with resolution filtering and Firebase integration.
+A web-based tool for downloading and managing Instagram content with resolution filtering and Firebase integration.
+
+## 🌐 Web Interface
+
+Modern, minimalist web interface with dark theme.
+
+### Quick Start
+```bash
+# Install Python dependencies
+pip3 install -r requirements.txt
+
+# Install Node.js dependencies (for Puppeteer scraper)
+npm install
+
+# Start web server
+python3 web_app.py
+```
+
+Then visit: **http://localhost:8080**
+
+### Features
+- ✅ **Instagram Account Scraping** (via Puppeteer)
+- ✅ **Manual Image Upload** by URL
+- ✅ **Resolution Filtering** (400px - 1920px)
+- ✅ **Account Management** (view existing downloads)
+- ✅ **Image Preview & Gallery**
+- ✅ **Firebase Storage Integration** (optional)
+- ✅ **Dark Minimalist UI**
 
 ## 🏗️ Project Structure
 
 ```
-instagram_tools/
-├── main.py                 # Unified entry point
-├── requirements.txt        # Dependencies
-├── config/                 # Configuration files
-│   └── .env.example       # Environment variables template
-├── src/                    # Source code
-│   ├── instagram_api.py           # Official Instagram Basic Display API
-│   ├── instagram_rapidapi.py      # RapidAPI Instagram scraper
-│   ├── instagram_account_finder.py # Account discovery tools
-│   ├── batch_downloader.py        # Batch processing
+Abric Util Manager/
+├── web_app.py                      # Main Flask web application
+├── config.py                       # Centralized configuration
+├── requirements.txt                # Python dependencies
+├── package.json                    # Node.js dependencies (Puppeteer)
+├── .env                           # Environment variables (create from env.example)
+├── env.example                    # Environment variables template
+│
+├── src/                           # Source modules
+│   ├── instagram_scraper.py       # Web scraper wrapper
 │   ├── firebase_config.py         # Firebase integration
-│   └── firebase_web_config.py     # Firebase web config
-├── output/                 # Generated files
-│   ├── images/            # Downloaded images
-│   ├── found_accounts.json       # Discovered accounts
-│   └── posts.json         # Post metadata
-└── docs/                   # Documentation
+│   ├── utils.py                   # Utility functions
+│   └── ...
+│
+├── instagram_node_scraper.py      # Puppeteer-based scraper
+│
+├── templates/                     # HTML templates
+│   ├── index.html                # Main page
+│   └── gallery.html              # Gallery view
+│
+├── output/                        # Output directory
+│   └── downloads/                # Downloaded images by username
+│       ├── username1/
+│       ├── username2/
+│       └── ...
+│
+├── config/                        # Configuration files
+│   ├── config_example.py         # Config template
+│   └── firebase_env_example.txt  # Firebase setup example
+│
+├── docs/                          # Documentation
+├── FIREBASE_SETUP.md             # Firebase setup guide
+└── firestore.rules               # Firestore security rules
 ```
 
-## 🚀 Quick Start
+## 🚀 Installation & Setup
 
-### 1. Installation
+### 1. Prerequisites
+- Python 3.8+
+- Node.js 14+ (for Puppeteer scraper)
+- pip & npm
+
+### 2. Install Dependencies
 
 ```bash
-cd instagram_tools
+# Python dependencies
 pip3 install -r requirements.txt
+
+# Node.js dependencies (Puppeteer)
+npm install
 ```
 
-### 2. Configuration
+### 3. Environment Configuration
+
+Create `.env` file from template:
 
 ```bash
-# Setup configuration files
-python3 main.py config --setup
-
-# Test Firebase connection
-python3 main.py config --test-firebase
+cp env.example .env
 ```
 
-### 3. Basic Usage
+Edit `.env` with your credentials:
 
 ```bash
-# Find photography accounts
-python3 main.py find --method category --query photography --limit 10
+# Flask Settings
+SECRET_KEY=your_secret_key_here
+DEBUG=True
+HOST=0.0.0.0
+PORT=8080
 
-# Download high-quality images
-python3 main.py download natgeo --limit 20 --min-resolution 1080 --firebase
+# File Paths
+UPLOAD_FOLDER=output/downloads
+TEMPLATE_FOLDER=templates
 
-# Batch process multiple accounts
-python3 main.py batch --input output/found_accounts.json --limit 5 --resolution 800
-```
+# Instagram API (Optional - for RapidAPI backup)
+RAPIDAPI_KEY=your_rapidapi_key_here
 
-## 🎯 Main Features
-
-### Account Discovery
-- **Category-based search**: Find accounts by niche (photography, design, travel)
-- **Exploration**: Discover popular accounts
-- **Filtering**: Set minimum follower counts and verification status
-
-### Content Download
-- **Multiple sources**: Official API, RapidAPI, web scraping
-- **Resolution filtering**: Download only high-quality images (800px+, 1080p+, 4K)
-- **Metadata extraction**: Captions, likes, comments, timestamps
-
-### Batch Processing
-- **Multi-account support**: Process hundreds of accounts
-- **Progress tracking**: Detailed statistics and error reporting
-- **Resume capability**: Continue from interruption points
-
-### Firebase Integration
-- **Storage upload**: Automatically upload images to Firebase Storage
-- **Metadata sync**: Save post information to Firestore
-- **Organized structure**: Categorized storage paths
-
-## 📋 Available Commands
-
-### Account Discovery
-```bash
-# Find accounts by category
-python3 main.py find --method category --query photography --limit 20
-
-# Search explore pages
-python3 main.py find --method explore --limit 15
-
-# Filter by follower count
-python3 main.py find --method category --query design --min-followers 50000
-```
-
-### Content Download
-```bash
-# Download with resolution filtering
-python3 main.py download username --min-resolution 1080 --download-dir output/images
-
-# Upload to Firebase
-python3 main.py download username --firebase --limit 15
-
-# Save metadata only
-python3 main.py download username --output output/posts.json
-```
-
-### Batch Operations
-```bash
-# Process account list
-python3 main.py batch --input output/found_accounts.json --limit 10 --resolution 1080
-
-# Process subset of accounts
-python3 main.py batch --input accounts.json --start-from 10 --max-accounts 50
-
-# Full pipeline with Firebase
-python3 main.py batch --input accounts.json --firebase --limit 5
-```
-
-### Configuration
-```bash
-# Setup environment
-python3 main.py config --setup
-
-# Test Firebase
-python3 main.py config --test-firebase
-```
-
-## 🔧 Environment Setup
-
-### Required Environment Variables
-
-Create `config/.env`:
-
-```bash
-# RapidAPI (for public accounts)
-RAPIDAPI_KEY=your_rapidapi_key
-
-# Firebase (for storage)
-FIREBASE_PROJECT_ID=your_project_id
+# Firebase Configuration (Optional)
+FIREBASE_PROJECT_ID=your_project_id_here
+FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
 FIREBASE_PRIVATE_KEY_ID=your_private_key_id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\nyour_key\\n-----END PRIVATE KEY-----\\n"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour_private_key_here\n-----END PRIVATE KEY-----\n"
 FIREBASE_CLIENT_EMAIL=your_service_account_email
+FIREBASE_CLIENT_ID=your_client_id
 
-# Official Instagram API (own account only)
-INSTAGRAM_ACCESS_TOKEN=your_token
+# Image Processing Settings
+DEFAULT_MIN_RESOLUTION=800
+MAX_IMAGE_SIZE=10485760
 ```
 
-### API Keys
+### 4. Firebase Setup (Optional)
 
-1. **RapidAPI**: Sign up at [rapidapi.com](https://rapidapi.com) for Instagram scraper APIs
-2. **Firebase**: Create project at [firebase.google.com](https://firebase.google.com) and generate service account key
-3. **Instagram**: Use for your own account content only
+For Firebase Storage integration, follow the guide in `FIREBASE_SETUP.md`.
 
-## 📊 Output Structure
+## 📖 Usage
 
-### Image Organization
-```
-output/images/
-├── username1_20250101_120000.jpg
-├── username1_20250101_130000.jpg
-├── username2_20250102_140000.jpg
-└── username2_20250102_150000.jpg
+### Start the Server
+
+```bash
+python3 web_app.py
 ```
 
-### Metadata Files
-- `found_accounts.json`: Discovered account information
-- `posts.json`: Post metadata with Firebase URLs
-- `batch_download_results.json`: Batch processing statistics
+Server will start at `http://localhost:8080`
+
+### Fetch Images from Instagram
+
+1. Enter Instagram username
+2. Select minimum resolution
+3. Click "Fetch Images"
+4. Preview and download images
+
+### Manual Image Upload
+
+1. Click "Manual Image Upload"
+2. Select existing account or enter new username
+3. Paste image URLs (one per line)
+4. Optionally enable Firebase upload
+5. Click "Upload"
+
+### View Gallery
+
+After downloading images, click "View Full Gallery" to see all images for a user.
+
+## 🔧 Configuration
+
+### Resolution Options
+- 400px (Low quality)
+- 800px (Default)
+- 1200px (High quality)
+- 1920px (Full HD)
+
+### Scraping Methods
+1. **Puppeteer (Primary)**: Headless browser scraping
+2. **RapidAPI (Backup)**: API-based scraping (requires API key)
+
+## 📊 API Endpoints
+
+- `GET /` - Main page
+- `GET /api/status` - API status check
+- `GET /api/accounts` - List all downloaded accounts
+- `GET /api/account/<username>/images` - Get images for specific account
+- `POST /api/fetch` - Fetch images from Instagram
+- `POST /api/manual_upload` - Upload images from URLs
+- `GET /gallery/<username>` - Gallery view for user
+- `GET /download/<username>/<filename>` - Download specific image
+
+## 🎨 UI Features
+
+### Dark Theme
+- Background: `#121212`
+- Text: `#f5f5f5`
+- Borders: `1.2px solid #f5f5f5`
+- Minimalist "skeleton" design
+- Hover effects with color inversion
+
+### Account Management
+- View existing accounts
+- See total images and storage size
+- Check last update time
+- Preview recent images
 
 ## ⚠️ Important Notes
 
 ### Legal & Ethical Guidelines
-- **Respect terms of service**: Only download publicly available content
-- **Rate limiting**: Built-in delays to prevent API abuse
-- **Personal use**: Intended for personal projects, not commercial redistribution
-- **Attribution**: Properly credit original content creators
+- **Respect Terms of Service**: Only download publicly available content
+- **Rate Limiting**: Built-in delays to prevent abuse
+- **Personal Use**: For personal projects, not commercial redistribution
+- **Attribution**: Credit original content creators
 
-### Performance Considerations
-- **Resolution filtering**: Automatically skips low-quality images
-- **Parallel processing**: Multiple accounts processed efficiently
-- **Memory management**: Large images handled with streaming
-- **Error recovery**: Automatic retry and error reporting
+### Technical Considerations
+- Puppeteer requires Chrome/Chromium
+- Instagram may block repeated requests
+- Firebase is optional but recommended for backup
+- Large downloads may take time
 
-## 🛠️ Development
+## 🐛 Troubleshooting
 
-### Adding New Sources
-1. Create new `instagram_*.py` in `src/`
-2. Add entry point in `main.py`
-3. Follow existing API patterns for consistency
+### Puppeteer Issues
+```bash
+# Reinstall Puppeteer
+npm install puppeteer --force
+```
 
-### Customization
-- **Categories**: Add new account categories in `instagram_account_finder.py`
-- **Filters**: Extend resolution and quality filters
-- **Storage**: Modify Firebase upload paths and organization
+### Port Already in Use
+```bash
+# Change PORT in .env
+PORT=8081
+```
+
+### Firebase Errors
+- Check `FIREBASE_SETUP.md`
+- Verify environment variables
+- Ensure service account has proper permissions
+
+## 📝 Development
+
+### File Organization
+- Keep downloaded images in `output/downloads/<username>/`
+- Temporary scraper files in `temp_scrapes/` (auto-cleaned)
+- Cache in `__pycache__/` (gitignored)
+
+### Adding Features
+1. Update `web_app.py` for backend logic
+2. Modify `templates/index.html` for UI
+3. Add utilities to `src/utils.py`
+
+## 🔒 Security
+
+- Never commit `.env` file
+- Keep Firebase credentials secure
+- Use environment variables for sensitive data
+- `.gitignore` configured for security
 
 ## 📞 Support
 
-For issues and feature requests, please check:
-1. Configuration setup (`python3 main.py config --setup`)
-2. Firebase connectivity (`python3 main.py config --test-firebase`)
-3. API key validity
-4. Rate limiting adherence
+For issues:
+1. Check console logs in terminal
+2. Verify environment variables
+3. Test API connectivity
+4. Review browser developer console
 
 ---
 

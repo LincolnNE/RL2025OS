@@ -1,0 +1,27 @@
+{
+  "name": "abric-util-manager",
+  "version": "1.0.0",
+  "description": "A comprehensive toolset for downloading and managing Instagram content with resolution filtering and Firebase integration. Now with **web interface**!",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LincolnNE/RL2025OS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/LincolnNE/RL2025OS/issues"
+  },
+  "homepage": "https://github.com/LincolnNE/RL2025OS#readme",
+  "dependencies": {
+    "puppeteer": "^24.22.3"
+  }
+}

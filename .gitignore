@@ -39,7 +39,23 @@ Thumbs.db
 # Downloaded content
 output/images/
 output/downloads/
+output/fetchlog/
+output/temp_downloads/
 temp_downloads/
+
+# Temporary files
+temp_scrapes/
+*.tmp
+*.temp
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Output data
+output/found_accounts.json
+output/manual_accounts.json
+output/rapidapi_posts.json
 
 # Logs
 *.log

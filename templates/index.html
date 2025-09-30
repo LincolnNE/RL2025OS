@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Image Fetcher</title>
+    <style>
+        /* CSS Variables for consistent theming */
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #f5f5f5;
+            --text-secondary: #b0b0b0;
+            --border-color: #f5f5f5;
+            --border-width: 1.2px;
+            --spacing-xs: 8px;
+            --spacing-sm: 16px;
+            --spacing-md: 24px;
+            --spacing-lg: 32px;
+            --spacing-xl: 40px;
+            --font-size-sm: 14px;
+            --font-size-base: 16px;
+            --font-size-lg: 18px;
+            --font-size-xl: 24px;
+            --font-size-2xl: 32px;
+            --border-radius: 0px;
+            --transition: all 0.2s ease;
+        }
+
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: var(--spacing-sm);
+            line-height: 1.6;
+        }
+        
+        /* Layout components */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            border: var(--border-width) solid var(--border-color);
+        }
+        
+        .header {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: var(--spacing-xl);
+            text-align: center;
+            border-bottom: var(--border-width) solid var(--border-color);
+        }
+        
+        .header h1 {
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--spacing-xs);
+            font-weight: 300;
+            letter-spacing: -0.5px;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: var(--font-size-base);
+        }
+        
+        .main-content {
+            padding: var(--spacing-xl);
+        }
+        
+        /* Form components */
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group input, 
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: var(--border-width) solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: var(--font-size-base);
+            transition: var(--transition);
+        }
+        
+        .form-group input:focus, 
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--text-primary);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        /* Button components */
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: var(--border-width) solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: var(--spacing-md);
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+        }
+
+        /* Status components */
+        .status-indicator {
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            display: none;
+            border: var(--border-width) solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+        }
+        
+        .status-success {
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+        
+        .status-error {
+            border-color: #f87171;
+            color: #f87171;
+        }
+        
+        .status-info {
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+        
+        /* Results section */
+        .results {
+            display: none;
+            margin-top: var(--spacing-lg);
+        }
+
+        .results h3 {
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--spacing-md);
+            font-weight: 300;
+        }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+        
+        .image-item {
+            overflow: hidden;
+            border: var(--border-width) solid var(--border-color);
+            background: var(--bg-primary);
+            transition: var(--transition);
+        }
+        
+        .image-item:hover {
+            border-color: var(--text-primary);
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .image-info {
+            padding: var(--spacing-sm);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .image-info p {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xs);
+            line-height: 1.4;
+        }
+
+        /* API Status indicator */
+        .api-status {
+            position: fixed;
+            top: var(--spacing-sm);
+            right: var(--spacing-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border: var(--border-width) solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            z-index: 1000;
+        }
+        
+        .status-working {
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+        
+        .status-error-status {
+            border-color: #f87171;
+            color: #f87171;
+        }
+        
+        /* Button styles */
+        .download-btn {
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            text-decoration: none;
+            border: var(--border-width) solid var(--border-color);
+            transition: var(--transition);
+            text-align: center;
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+        }
+        
+        .download-btn:hover {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        .download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .firebase-upload-btn {
+            flex: 0.8;
+            min-width: 100px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-primary);
+            border: var(--border-width) solid var(--border-color);
+            padding: var(--spacing-lg);
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .modal-header h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 300;
+            color: var(--text-primary);
+        }
+
+        .modal-section {
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border: var(--border-width) solid var(--border-color);
+        }
+
+        .modal-section h4 {
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: var(--spacing-sm);
+        }
+
+        .stat-value {
+            font-size: var(--font-size-xl);
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+        }
+
+        .preview-item {
+            width: 80px;
+            height: 80px;
+            overflow: hidden;
+            background: var(--bg-primary);
+            border: var(--border-width) solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .preview-item:hover {
+            border-color: var(--text-primary);
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: var(--spacing-xs);
+            }
+            
+            .header {
+                padding: var(--spacing-md);
+            }
+            
+            .main-content {
+                padding: var(--spacing-md);
+            }
+            
+            .header h1 {
+                font-size: var(--font-size-xl);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: var(--spacing-md);
+                width: 98%;
+            }
+
+            .image-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: var(--spacing-sm);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: var(--spacing-xs);
+            }
+
+            .header h1 {
+                font-size: var(--font-size-lg);
+            }
+
+            .image-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .preview-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
+
+            .preview-item {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        /* Utility classes */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-secondary);
+        }
+
+        .mb-0 { margin-bottom: 0; }
+        .mb-1 { margin-bottom: var(--spacing-xs); }
+        .mb-2 { margin-bottom: var(--spacing-sm); }
+        .mb-3 { margin-bottom: var(--spacing-md); }
+        .mb-4 { margin-bottom: var(--spacing-lg); }
+
+        .mt-0 { margin-top: 0; }
+        .mt-1 { margin-top: var(--spacing-xs); }
+        .mt-2 { margin-top: var(--spacing-sm); }
+        .mt-3 { margin-top: var(--spacing-md); }
+        .mt-4 { margin-top: var(--spacing-lg); }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .gap-1 { gap: var(--spacing-xs); }
+        .gap-2 { gap: var(--spacing-sm); }
+        .gap-3 { gap: var(--spacing-md); }
+    </style>
+</head>
+<body>
+    <div class="api-status" id="apiStatus" style="display: none;">Checking API status...</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📸 Instagram Image Fetcher</h1>
+            <p>Download high-resolution Instagram images easily</p>
+        </div>
+        
+        <div class="main-content">
+            <form id="fetchForm">
+                <div class="form-group">
+                    <label for="username">👤 Instagram Username</label>
+                    <input type="text" id="username" placeholder="e.g: natgeo, nike, apple" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="resolution">🎯 Minimum Resolution (pixels)</label>
+                    <select id="resolution">
+                        <option value="800">800px (default)</option>
+                        <option value="1200">1200px</option>
+                        <option value="1920">1920px (Full HD)</option>
+                        <option value="400">400px</option>
+                    </select>
+                </div>
+                
+                    <button type="submit" class="btn btn-primary" id="fetchBtn">
+                        🚀 Fetch Images
+                </button>
+                
+                <div class="text-center text-muted mb-3">
+                    <p>or</p>
+                </div>
+                
+                <button type="button" class="btn btn-primary" id="manualBtn">
+                    📁 Manual Image Upload
+                </button>
+            </form>
+            
+            <div class="status-indicator" id="statusIndicator"></div>
+            
+            <div class="results" id="results">
+                <h3>📱 Fetched Images</h3>
+                <div class="image-grid" id="imageGrid"></div>
+                
+                <div class="text-center mt-4">
+                    <a href="#" id="galleryLink" class="btn">
+                        🖼️ View Full Gallery
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Upload Modal -->
+    <div id="manualModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📁 Manual Image Upload</h3>
+            </div>
+            
+            <!-- Account Selection Section -->
+            <div class="modal-section">
+                <h4>📊 Select Existing Account or Create New</h4>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>👤 Username</label>
+                        <div class="flex gap-2">
+                            <select id="existingAccountSelect" class="flex-1">
+                                <option value="">Select existing account...</option>
+                            </select>
+                            <button id="refreshAccountsBtn" class="btn">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Or new username</label>
+                        <input type="text" id="manualUsername" placeholder="e.g: natgeo">
+                    </div>
+                </div>
+                
+                <!-- Account Stats -->
+                <div id="accountStats" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalImagesCount">0</div>
+                            <div class="stat-label">Total Images</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="accountSize">0MB</div>
+                            <div class="stat-label">Total Size</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="lastUpdated">-</div>
+                            <div class="stat-label">Last Updated</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Images Preview -->
+                <div id="recentImagesPreview" style="display: none;">
+                    <h5 class="mb-2">🖼️ Recent Images Preview</h5>
+                    <div id="recentImagesGrid" class="preview-grid">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Image URLs Section -->
+            <div class="form-group">
+                <label>🔗 Image URLs (one per line)</label>
+                <textarea id="imageUrls" rows="6" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"></textarea>
+            </div>
+            
+            <!-- Resolution and Firebase Options -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>🎯 Minimum Resolution</label>
+                    <select id="manualResolution">
+                        <option value="800">800px (default)</option>
+                        <option value="1200">1200px</option>
+                        <option value="1920">1920px (Full HD)</option>
+                        <option value="400">400px</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="flex gap-2" style="align-items: center; margin-top: 20px;">
+                    <input type="checkbox" id="firebaseUpload" style="transform: scale(1.2);">
+                        <span>🔥 Firebase Upload</span>
+                </label>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="uploadBtn" class="btn flex-1">
+                    📤 Upload
+                </button>
+                <button id="closeModal" class="btn">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API status check (hidden)
+        async function checkApiStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                const statusEl = document.getElementById('apiStatus');
+                
+                if (data.success) {
+                    statusEl.textContent = '✅ API Working';
+                    statusEl.className = 'api-status status-working';
+                    statusEl.style.display = 'none'; // Hide on success
+                } else {
+                    statusEl.style.display = 'none'; // Hide on error
+                }
+            } catch (error) {
+                document.getElementById('apiStatus').style.display = 'none'; // Hide on connection failure
+            }
+        }
+        
+        // Check API status on page load
+        checkApiStatus();
+        
+        // Form submission handling
+        document.getElementById('fetchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const resolution = parseInt(document.getElementById('resolution').value);
+            
+            if (!username) {
+                showStatus('❌ Please enter a username', 'error');
+                return;
+            }
+            
+            const fetchBtn = document.getElementById('fetchBtn');
+            const originalText = fetchBtn.innerHTML;
+            
+            fetchBtn.disabled = true;
+            fetchBtn.innerHTML = '⏳ Fetching...';
+            showStatus('🔍 Fetching images...', 'info');
+            
+            try {
+                const response = await fetch('/api/fetch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        min_resolution: resolution
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus(`✅ Successfully fetched ${data.images.length} images!`, 'success');
+                    displayImages(data.images, username);
+                } else {
+                    showStatus('❌ Error: ' + data.message, 'error');
+                }
+                
+            } catch (error) {
+                showStatus('❌ Network error: ' + error.message, 'error');
+            } finally {
+                fetchBtn.disabled = false;
+                fetchBtn.innerHTML = originalText;
+            }
+        });
+        
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusIndicator');
+            statusEl.textContent = message;
+            statusEl.className = 'status-indicator status-' + type;
+            statusEl.style.display = 'block';
+            
+            if (type === 'error') {
+                statusEl.addEventListener('click', () => statusEl.style.display = 'none');
+            }
+        }
+        
+        function displayImages(images, username) {
+            const resultsEl = document.getElementById('results');
+            const imageGridEl = document.getElementById('imageGrid');
+            const galleryLink = document.getElementById('galleryLink');
+            
+            // Set gallery link
+            galleryLink.href = `/gallery/${username}`;
+            
+            if (images.length === 0) {
+                imageGridEl.innerHTML = '<p>No images found matching the resolution criteria.</p>';
+            } else {
+                imageGridEl.innerHTML = images.map(img => `
+                    <div class="image-item">
+                        <img src="/download/${username}/${img.filename}" alt="${img.filename}">
+                        <div class="image-info">
+                            <p style="font-size: 12px; margin-bottom: 10px;">${img.post_caption}</p>
+                            <div class="flex gap-2">
+                                <a href="/download/${username}/${img.filename}" class="download-btn flex-1">
+                                    📥 Download
+                            </a>
+                                <button class="download-btn firebase-upload-btn" data-username="${username}" data-filename="${img.filename}">
+                                    🔥 Firebase
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Add event listeners for Firebase upload buttons
+                document.querySelectorAll('.firebase-upload-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const username = this.getAttribute('data-username');
+                        const filename = this.getAttribute('data-filename');
+                        uploadImageToFirebase(username, filename, this);
+                    });
+                });
+            }
+            
+            resultsEl.style.display = 'block';
+        }
+        
+        // Upload image to Firebase
+        async function uploadImageToFirebase(username, filename, buttonEl) {
+            const originalText = buttonEl.textContent;
+            
+            try {
+                buttonEl.disabled = true;
+                buttonEl.textContent = '⏳ Uploading...';
+                
+                const response = await fetch('/api/upload_to_firebase', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        filename: filename
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    buttonEl.textContent = '✅ Uploaded';
+                    buttonEl.style.backgroundColor = '#4CAF50';
+                    showStatus(`✅ ${filename} uploaded to Firebase successfully!`, 'success');
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        buttonEl.textContent = originalText;
+                        buttonEl.style.backgroundColor = '';
+                        buttonEl.disabled = false;
+                    }, 2000);
+                } else {
+                    buttonEl.textContent = '❌ Failed';
+                    buttonEl.style.backgroundColor = '#f44336';
+                    showStatus(`❌ Firebase upload failed: ${data.message}`, 'error');
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        buttonEl.textContent = originalText;
+                        buttonEl.style.backgroundColor = '';
+                        buttonEl.disabled = false;
+                    }, 2000);
+                }
+            } catch (error) {
+                buttonEl.textContent = '❌ Error';
+                buttonEl.style.backgroundColor = '#f44336';
+                showStatus(`❌ Firebase upload error: ${error.message}`, 'error');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    buttonEl.textContent = originalText;
+                    buttonEl.style.backgroundColor = '';
+                    buttonEl.disabled = false;
+                }, 2000);
+            }
+        }
+        
+        // Check API status periodically (every 5 minutes)
+        setInterval(checkApiStatus, 300000);
+        
+        // Manual upload functionality
+        document.getElementById('manualBtn').addEventListener('click', function() {
+            document.getElementById('manualModal').style.display = 'block';
+            loadExistingAccounts();
+        });
+        
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('manualModal').style.display = 'none';
+        });
+        
+        // Load existing accounts
+        async function loadExistingAccounts() {
+            try {
+                const response = await fetch('/api/accounts');
+                const data = await response.json();
+                
+                const select = document.getElementById('existingAccountSelect');
+                select.innerHTML = '<option value="">Select existing account...</option>';
+                
+                if (data.accounts && data.accounts.length > 0) {
+                    data.accounts.forEach(account => {
+                        const option = document.createElement('option');
+                        option.value = account.username;
+                        option.textContent = `@${account.username} (${account.total_images} images)`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No existing accounts';
+                    option.disabled = true;
+                    select.appendChild(option);
+                }
+            } catch (error) {
+                console.error('Failed to load accounts:', error);
+            }
+        }
+        
+        // Refresh accounts button
+        document.getElementById('refreshAccountsBtn').addEventListener('click', function() {
+            loadExistingAccounts();
+        });
+        
+        // Account selection change handler
+        document.getElementById('existingAccountSelect').addEventListener('change', function() {
+            const selectedUsername = this.value;
+            const manualUsernameInput = document.getElementById('manualUsername');
+            
+            if (selectedUsername) {
+                manualUsernameInput.value = selectedUsername;
+                loadAccountDetails(selectedUsername);
+            } else {
+                manualUsernameInput.value = '';
+                hideAccountDetails();
+            }
+        });
+        
+        // Load account details and preview
+        async function loadAccountDetails(username) {
+            try {
+                const response = await fetch(`/api/account/${username}/images`);
+                const data = await response.json();
+                
+                if (data.images && data.images.length > 0) {
+                    // Show account stats
+                    document.getElementById('totalImagesCount').textContent = data.total_count;
+                    document.getElementById('accountSize').textContent = formatFileSize(
+                        data.images.reduce((sum, img) => sum + img.size, 0)
+                    );
+                    document.getElementById('lastUpdated').textContent = formatDate(
+                        data.images[0].modified
+                    );
+                    document.getElementById('accountStats').style.display = 'block';
+                    
+                    // Show recent images preview
+                    const recentImagesGrid = document.getElementById('recentImagesGrid');
+                    recentImagesGrid.innerHTML = '';
+                    
+                    const recentImages = data.images.slice(0, 6); // Show up to 6 recent images
+                    recentImages.forEach(img => {
+                        const imgElement = document.createElement('div');
+                        imgElement.className = 'preview-item';
+                        imgElement.innerHTML = `
+                            <img src="${img.download_url}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;"
+                                 onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-secondary);font-size:12px;\\'>📷</div>'"
+                                 title="${img.filename}">
+                        `;
+                        imgElement.addEventListener('click', () => {
+                            window.open(img.download_url, '_blank');
+                        });
+                        recentImagesGrid.appendChild(imgElement);
+                    });
+                    
+                    document.getElementById('recentImagesPreview').style.display = 'block';
+                } else {
+                    hideAccountDetails();
+                }
+            } catch (error) {
+                console.error('Failed to load account details:', error);
+                hideAccountDetails();
+            }
+        }
+        
+        // Hide account details
+        function hideAccountDetails() {
+            document.getElementById('accountStats').style.display = 'none';
+            document.getElementById('recentImagesPreview').style.display = 'none';
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                return 'Today';
+            } else if (diffDays === 1) {
+                return 'Yesterday';
+            } else if (diffDays < 7) {
+                return `${diffDays} days ago`;
+            } else {
+                return date.toLocaleDateString('en-US');
+            }
+        }
+        
+        document.getElementById('uploadBtn').addEventListener('click', async function() {
+            const username = document.getElementById('manualUsername').value.trim();
+            const urlsText = document.getElementById('imageUrls').value.trim();
+            
+            if (!username) {
+                showStatus('❌ Please enter a username', 'error');
+                return;
+            }
+            
+            if (!urlsText) {
+                showStatus('❌ Please enter image URLs', 'error');
+                return;
+            }
+            
+            const imageUrls = urlsText.split('\\n').filter(url => url.trim()).map(url => url.trim());
+            
+            const uploadBtn = document.getElementById('uploadBtn');
+            const originalText = uploadBtn.textContent;
+            
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '⏳ Uploading...';
+            showStatus('📤 Uploading images...', 'info');
+            
+            try {
+                const response = await fetch('/api/manual_upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        image_urls: imageUrls,
+                        min_resolution: parseInt(document.getElementById('manualResolution').value),
+                        upload_to_firebase: document.getElementById('firebaseUpload').checked
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    let statusMessage = `✅ Successfully uploaded ${data.uploaded_count} images!`;
+                    
+                    if (data.firebase_enabled && data.firebase_count > 0) {
+                        statusMessage += ` / ${data.firebase_count} Firebase uploads completed 🔥`;
+                    }
+                    
+                    showStatus(statusMessage, 'success');
+                    document.getElementById('manualModal').style.display = 'none';
+                    
+                    // Clear form
+                    document.getElementById('manualUsername').value = '';
+                    document.getElementById('imageUrls').value = '';
+                    document.getElementById('firebaseUpload').checked = false;
+                    document.getElementById('existingAccountSelect').value = '';
+                    hideAccountDetails();
+                    
+                    // Update gallery link
+                    document.getElementById('galleryLink').href = `/gallery/${username}`;
+                    
+                    // Refresh accounts list for next time
+                    loadExistingAccounts();
+                    
+                    // Show Firebase URLs if available
+                    if (data.firebase_enabled && data.firebase_uploads) {
+                        console.log('Firebase uploads:', data.firebase_uploads);
+                    }
+                    
+                } else {
+                    showStatus('❌ Upload failed: ' + data.message, 'error');
+                }
+                
+            } catch (error) {
+                showStatus('❌ Upload error: ' + error.message, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = originalText;
+            }
+        });
+        
+        // Close modal when clicking outside
+        document.getElementById('manualModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

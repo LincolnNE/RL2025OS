@@ -10,7 +10,13 @@ import time
 from typing import Dict, List, Optional
 import argparse
 from datetime import datetime
-from .firebase_config import FirebaseManager
+try:
+    from .firebase_config import FirebaseManager
+except ImportError:
+    # For direct execution
+    import sys
+    sys.path.append('.')
+    from src.firebase_config import FirebaseManager
 from PIL import Image
 import io
 
