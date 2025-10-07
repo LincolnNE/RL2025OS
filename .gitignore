@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.production
+config/.env
+*/.env
 
 # Firebase credentials
 firebase-adminsdk-*.json
