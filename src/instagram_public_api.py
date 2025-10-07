@@ -10,7 +10,7 @@ import time
 from typing import Dict, List, Optional
 import argparse
 from datetime import datetime
-from firebase_config import FirebaseManager
+from config.firebase_config import FirebaseManager
 
 class InstagramPublicAPI:
     def __init__(self):

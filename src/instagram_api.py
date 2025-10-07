@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 from typing import Dict, List, Optional
 import argparse
 from datetime import datetime
-from .firebase_config import FirebaseManager
+from config.firebase_config import FirebaseManager
 
 class InstagramAPI:
     def __init__(self, access_token: str):

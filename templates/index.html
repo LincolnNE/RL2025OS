@@ -114,6 +114,38 @@
             min-height: 120px;
             font-family: inherit;
         }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-xs);
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            border: var(--border-width) solid transparent;
+            transition: var(--transition);
+        }
+        
+        .checkbox-label:hover {
+            border-color: var(--border-color);
+            background: var(--bg-secondary);
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .checkbox-label span {
+            font-size: var(--font-size-sm);
+            color: var(--text-primary);
+        }
 
         /* Button components */
         .btn {
@@ -491,6 +523,48 @@
         .gap-1 { gap: var(--spacing-xs); }
         .gap-2 { gap: var(--spacing-sm); }
         .gap-3 { gap: var(--spacing-md); }
+
+        /* Drop zone styles */
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-xl);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--bg-secondary);
+            margin: var(--spacing-md) 0;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .drop-zone.drag-over {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .drop-zone-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            opacity: 0.7;
+        }
+
+        .drop-zone-text {
+            color: var(--text-secondary);
+        }
+
+        .drop-zone-text strong {
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
@@ -499,7 +573,7 @@
     <div class="container">
         <div class="header">
             <h1>📸 Instagram Image Fetcher</h1>
-            <p>Download high-resolution Instagram images easily</p>
+            <p>Download original quality Instagram images easily</p>
         </div>
         
         <div class="main-content">
@@ -510,13 +584,52 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="resolution">🎯 Minimum Resolution (pixels)</label>
-                    <select id="resolution">
-                        <option value="800">800px (default)</option>
-                        <option value="1200">1200px</option>
-                        <option value="1920">1920px (Full HD)</option>
-                        <option value="400">400px</option>
-                    </select>
+                    <label for="content-types">📱 Content Types (Enhanced RapidAPI)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="content-posts" name="content-types" value="posts" checked>
+                            <span>📸 Posts</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="content-stories" name="content-types" value="stories">
+                            <span>📖 Stories</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="content-reels" name="content-types" value="reels">
+                            <span>🎬 Reels</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="content-igtv" name="content-types" value="igtv">
+                            <span>📺 IGTV</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Resolution filtering removed - always download original quality -->
+                
+                <div class="form-group">
+                    <label>🚀 AI Upscaling</label>
+                    <div class="upscaling-options">
+                        <select id="upscalingService" style="margin-bottom: 8px;">
+                            <option value="">No upscaling</option>
+                            <option value="replicate">Replicate Real-ESRGAN</option>
+                            <option value="deepai">DeepAI Super Resolution</option>
+                            <option value="upscale_media">Upscale.media</option>
+                            <option value="lets_enhance">Let's Enhance</option>
+                        </select>
+                        <select id="upscalingScale" style="display: none;">
+                            <option value="2">2x Scale</option>
+                            <option value="4">4x Scale</option>
+                            <option value="8">8x Scale</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="flex gap-2" style="align-items: center; margin-top: 20px;">
+                        <input type="checkbox" id="firebaseUpload" style="transform: scale(1.2);">
+                        <span>🔥 Firebase Upload</span>
+                    </label>
                 </div>
                 
                     <button type="submit" class="btn btn-primary" id="fetchBtn">
@@ -529,6 +642,14 @@
                 
                 <button type="button" class="btn btn-primary" id="manualBtn">
                     📁 Manual Image Upload
+                </button>
+                
+                <div class="text-center text-muted mb-3">
+                    <p>or</p>
+                </div>
+                
+                <button type="button" class="btn btn-primary" id="folderUploadBtn">
+                    📂 Upload Image Folder
                 </button>
             </form>
             
@@ -610,15 +731,7 @@
             
             <!-- Resolution and Firebase Options -->
             <div class="form-row">
-                <div class="form-group">
-                    <label>🎯 Minimum Resolution</label>
-                    <select id="manualResolution">
-                        <option value="800">800px (default)</option>
-                        <option value="1200">1200px</option>
-                        <option value="1920">1920px (Full HD)</option>
-                        <option value="400">400px</option>
-                    </select>
-                </div>
+                <!-- Resolution filtering removed - always download original quality -->
                 <div class="form-group">
                     <label class="flex gap-2" style="align-items: center; margin-top: 20px;">
                     <input type="checkbox" id="firebaseUpload" style="transform: scale(1.2);">
@@ -634,6 +747,54 @@
                 <button id="closeModal" class="btn">
                     Cancel
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Folder Upload Modal -->
+    <div id="folderUploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📂 Upload Image Folder</h3>
+            </div>
+            
+            <div class="modal-section">
+                <h4>📁 Drag & Drop or Select Folder</h4>
+                
+                <div id="folderDropZone" class="drop-zone">
+                    <div class="drop-zone-content">
+                        <div class="drop-zone-icon">📂</div>
+                        <div class="drop-zone-text">
+                            <p><strong>Drag & drop image folder here</strong></p>
+                            <p>or click to select folder</p>
+                        </div>
+                        <input type="file" id="folderInput" multiple webkitdirectory style="display: none;">
+                    </div>
+                </div>
+                
+                <div class="form-group mt-3">
+                    <label>👤 Username (folder name)</label>
+                    <input type="text" id="folderUsername" placeholder="e.g: natgeo, nike, apple">
+                </div>
+                
+                <div class="form-row">
+                    <!-- Resolution filtering removed - always download original quality -->
+                    <div class="form-group">
+                        <label class="flex gap-2" style="align-items: center; margin-top: 20px;">
+                            <input type="checkbox" id="folderFirebaseUpload" style="transform: scale(1.2);">
+                            <span>🔥 Firebase Upload</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button id="folderUploadConfirmBtn" class="btn flex-1">
+                        📤 Upload Folder
+                    </button>
+                    <button id="closeFolderModal" class="btn">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -662,12 +823,29 @@
         // Check API status on page load
         checkApiStatus();
         
+        // Upscaling service toggle
+        document.getElementById('upscalingService').addEventListener('change', function() {
+            const scaleSelect = document.getElementById('upscalingScale');
+            if (this.value) {
+                scaleSelect.style.display = 'block';
+            } else {
+                scaleSelect.style.display = 'none';
+            }
+        });
+        
         // Form submission handling
         document.getElementById('fetchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value.trim();
-            const resolution = parseInt(document.getElementById('resolution').value);
+            // Remove resolution filtering - always download original quality
+            const upscalingService = document.getElementById('upscalingService').value;
+            const upscalingScale = parseInt(document.getElementById('upscalingScale').value) || 2;
+            const firebaseUpload = document.getElementById('firebaseUpload').checked;
+            
+            // Get selected content types
+            const contentTypes = Array.from(document.querySelectorAll('input[name="content-types"]:checked'))
+                .map(cb => cb.value);
             
             if (!username) {
                 showStatus('❌ Please enter a username', 'error');
@@ -689,17 +867,63 @@
                     },
                     body: JSON.stringify({
                         username: username,
-                        min_resolution: resolution
+                        // Remove resolution filtering - always download original quality
+                        upscaling_service: upscalingService,
+                        upscaling_scale: upscalingScale,
+                        upload_to_firebase: firebaseUpload,
+                        content_types: contentTypes
                     })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    showStatus(`✅ Successfully fetched ${data.images.length} images!`, 'success');
-                    displayImages(data.images, username);
+                    // Handle manual upload option
+                    if (data.manual_upload_available) {
+                        showStatus(data.message, 'info');
+                        // Show manual upload section
+                        document.getElementById('manualUploadSection').style.display = 'block';
+                        document.getElementById('manualUsername').value = data.username;
+                        return;
+                    }
+                    
+                    if (data.images && data.images.length > 0) {
+                        let statusMessage = `✅ Successfully fetched ${data.images.length} items!`;
+                        
+                        // Add content type breakdown if available
+                        if (data.content_breakdown) {
+                            const breakdown = Object.entries(data.content_breakdown)
+                                .filter(([type, count]) => count > 0)
+                                .map(([type, count]) => `${type}: ${count}`)
+                                .join(', ');
+                            if (breakdown) {
+                                statusMessage += ` (${breakdown})`;
+                            }
+                        }
+                        
+                        if (data.firebase_enabled) {
+                            let firebaseCount = data.firebase_count || 0;
+                            if (firebaseCount > 0) {
+                                statusMessage += ` / ${firebaseCount} Firebase uploads completed 🔥`;
+                            } else {
+                                statusMessage += ` / Firebase upload enabled but no uploads 🔥`;
+                            }
+                        }
+                        
+                        showStatus(statusMessage, 'success');
+                        displayImages(data.images, username);
+                    } else {
+                        showStatus(`✅ Scraping completed but no images found. Check if the account has public posts.`, 'info');
+                        displayImages([], username);
+                    }
                 } else {
                     showStatus('❌ Error: ' + data.message, 'error');
+                    
+                    // Show manual upload option if available
+                    if (data.manual_upload_available) {
+                        document.getElementById('manualUploadSection').style.display = 'block';
+                        document.getElementById('manualUsername').value = data.username || username;
+                    }
                 }
                 
             } catch (error) {
@@ -730,7 +954,7 @@
             galleryLink.href = `/gallery/${username}`;
             
             if (images.length === 0) {
-                imageGridEl.innerHTML = '<p>No images found matching the resolution criteria.</p>';
+                imageGridEl.innerHTML = '<p>No images found.</p>';
             } else {
                 imageGridEl.innerHTML = images.map(img => `
                     <div class="image-item">
@@ -993,7 +1217,7 @@
                     body: JSON.stringify({
                         username: username,
                         image_urls: imageUrls,
-                        min_resolution: parseInt(document.getElementById('manualResolution').value),
+                        // Remove resolution filtering - always download original quality
                         upload_to_firebase: document.getElementById('firebaseUpload').checked
                     })
                 });
@@ -1001,12 +1225,20 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    let statusMessage = `✅ Successfully uploaded ${data.uploaded_count} images!`;
+                    let uploadedCount = data.uploaded_count || 0;
+                    let statusMessage = `✅ Successfully uploaded ${uploadedCount} images!`;
                     
-                    if (data.firebase_enabled && data.firebase_count > 0) {
-                        statusMessage += ` / ${data.firebase_count} Firebase uploads completed 🔥`;
+                    if (data.firebase_enabled) {
+                        let firebaseCount = data.firebase_count || 0;
+                        if (firebaseCount > 0) {
+                            statusMessage += ` / ${firebaseCount} Firebase uploads completed 🔥`;
+                        } else {
+                            statusMessage += ` / Firebase upload enabled but no uploads 🔥`;
+                        }
                     }
                     
+                    console.log('Upload success:', data);
+                    console.log('Firebase count:', data.firebase_count);
                     showStatus(statusMessage, 'success');
                     document.getElementById('manualModal').style.display = 'none';
                     
@@ -1033,6 +1265,7 @@
                 }
                 
             } catch (error) {
+                console.error('Upload error:', error);
                 showStatus('❌ Upload error: ' + error.message, 'error');
             } finally {
                 uploadBtn.disabled = false;
@@ -1046,6 +1279,194 @@
                 this.style.display = 'none';
             }
         });
+
+        // Folder upload functionality
+        document.getElementById('folderUploadBtn').addEventListener('click', function() {
+            document.getElementById('folderUploadModal').style.display = 'block';
+        });
+
+        document.getElementById('folderUploadModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
+        });
+
+        // Close folder modal button
+        document.getElementById('closeFolderModal').addEventListener('click', function() {
+            document.getElementById('folderUploadModal').style.display = 'none';
+        });
+
+        // Drag and drop functionality for folder upload
+        const dropZone = document.getElementById('folderDropZone');
+        const folderInput = document.getElementById('folderInput');
+
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const items = e.dataTransfer.items;
+            if (items.length > 0) {
+                handleFolderDrop(items);
+            }
+        });
+
+        dropZone.addEventListener('click', function() {
+            folderInput.click();
+        });
+
+        folderInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFolderSelection(e.target.files);
+            }
+        });
+
+        function handleFolderDrop(items) {
+            const files = [];
+            const promises = [];
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.kind === 'file') {
+                    const entry = item.webkitGetAsEntry();
+                    if (entry && entry.isDirectory) {
+                        promises.push(scanDirectory(entry, files));
+                    } else if (entry && entry.isFile) {
+                        promises.push(scanFile(entry, files));
+                    }
+                }
+            }
+
+            Promise.all(promises).then(() => {
+                processFolderFiles(files);
+            });
+        }
+
+        function handleFolderSelection(fileList) {
+            const files = [];
+            for (let i = 0; i < fileList.length; i++) {
+                const file = fileList[i];
+                if (file.type.startsWith('image/')) {
+                    files.push(file);
+                }
+            }
+            processFolderFiles(files);
+        }
+
+        function scanDirectory(directory, files) {
+            return new Promise((resolve) => {
+                const reader = directory.createReader();
+                reader.readEntries((entries) => {
+                    const promises = entries.map(entry => {
+                        if (entry.isDirectory) {
+                            return scanDirectory(entry, files);
+                        } else {
+                            return scanFile(entry, files);
+                        }
+                    });
+                    Promise.all(promises).then(() => resolve());
+                });
+            });
+        }
+
+        function scanFile(entry, files) {
+            return new Promise((resolve) => {
+                entry.file((file) => {
+                    if (file.type.startsWith('image/')) {
+                        files.push(file);
+                    }
+                    resolve();
+                });
+            });
+        }
+
+        function processFolderFiles(files) {
+            if (files.length === 0) {
+                showStatus('❌ No image files found in the selected folder', 'error');
+                return;
+            }
+
+            // Get username from folder name or prompt user
+            const username = document.getElementById('folderUsername').value.trim();
+            if (!username) {
+                showStatus('❌ Please enter a username for the folder', 'error');
+                return;
+            }
+
+            // Remove resolution filtering - always download original quality
+            const uploadToFirebase = document.getElementById('folderFirebaseUpload').checked;
+
+            // Show upload progress
+            const uploadBtn = document.getElementById('folderUploadConfirmBtn');
+            const originalText = uploadBtn.textContent;
+            
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '⏳ Uploading...';
+            showStatus(`📤 Uploading ${files.length} images from folder...`, 'info');
+
+            // Process files
+            const formData = new FormData();
+            formData.append('username', username);
+            // Remove resolution filtering - always download original quality
+            formData.append('upload_to_firebase', uploadToFirebase);
+
+            files.forEach((file, index) => {
+                formData.append('images', file);
+            });
+
+            // Upload to server
+            fetch('/api/folder_upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let uploadedCount = data.uploaded_count || 0;
+                    let statusMessage = `✅ Successfully uploaded ${uploadedCount} images from folder!`;
+                    
+                    if (data.firebase_enabled) {
+                        let firebaseCount = data.firebase_count || 0;
+                        if (firebaseCount > 0) {
+                            statusMessage += ` / ${firebaseCount} Firebase uploads completed 🔥`;
+                        } else {
+                            statusMessage += ` / Firebase upload enabled but no uploads 🔥`;
+                        }
+                    }
+                    
+                    console.log('Folder upload success:', data);
+                    console.log('Firebase count:', data.firebase_count);
+                    showStatus(statusMessage, 'success');
+                    document.getElementById('folderUploadModal').style.display = 'none';
+                    
+                    // Clear form
+                    document.getElementById('folderUsername').value = '';
+                    document.getElementById('folderFirebaseUpload').checked = false;
+                    
+                    // Refresh accounts list
+                    loadExistingAccounts();
+                    
+                } else {
+                    showStatus('❌ Folder upload failed: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('❌ Upload error: ' + error.message, 'error');
+            })
+            .finally(() => {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = originalText;
+            });
+        }
     </script>
 </body>
 </html>

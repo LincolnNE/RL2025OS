@@ -43,17 +43,73 @@ async function run() {{
         
         browser = await puppeteer.launch({{ 
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: [
+                '--no-sandbox', 
+                '--disable-setuid-sandbox',
+                '--disable-blink-features=AutomationControlled',
+                '--disable-features=VizDisplayCompositor',
+                '--disable-web-security',
+                '--disable-features=site-per-process',
+                '--no-first-run',
+                '--no-default-browser-check'
+            ]
         }});
         
         const page = await browser.newPage();
-        await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
         
-        // Navigate to Instagram profile
-        await page.goto('https://www.instagram.com/{username}/', {{ waitUntil: 'networkidle2' }});
+        // More realistic browser fingerprint
+        await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await page.setViewport({{ width: 1366, height: 768 }});
         
-        // Wait for posts to load
-        await page.waitForSelector('article', {{ timeout: 10000 }});
+        // Remove webdriver property
+        await page.evaluateOnNewDocument(() => {{
+            Object.defineProperty(navigator, 'webdriver', {{
+                get: () => undefined,
+            }});
+        }});
+        
+        // Add realistic headers
+        await page.setExtraHTTPHeaders({{
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Upgrade-Insecure-Requests': '1',
+            'Cache-Control': 'max-age=0'
+        }});
+        
+        // Navigate to Instagram profile with more realistic behavior
+        console.log('🌐 Navigating to Instagram profile...');
+        await page.goto('https://www.instagram.com/{username}/', {{ 
+            waitUntil: 'domcontentloaded',
+            timeout: 30000 
+        }});
+        
+        // Wait a bit for page to fully load
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Try multiple selectors for posts
+        let postsLoaded = false;
+        const selectors = ['article', 'main article', '[role="main"] article', 'section article'];
+        
+        for (const selector of selectors) {{
+            try {{
+                await page.waitForSelector(selector, {{ timeout: 5000 }});
+                console.log(`✅ Found posts using selector: ${{selector}}`);
+                postsLoaded = true;
+                break;
+            }} catch (e) {{
+                console.log(`❌ Selector failed: ${{selector}}`);
+            }}
+        }}
+        
+        if (!postsLoaded) {{
+            // Try to scroll to trigger loading
+            console.log('🔄 Scrolling to trigger post loading...');
+            await page.evaluate(() => {{
+                window.scrollTo(0, 500);
+            }});
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }}
         
         // Extract post data
         const posts = await page.evaluate(() => {{
@@ -195,15 +251,13 @@ run();
                     
                     print(f"✅ Successfully scraped {len(posts)} posts for @{username}")
                     
-                    # Filter and process images based on resolution
-                    filtered_posts = []
+                    # Enhance image URLs for higher quality (no resolution filtering)
+                    enhanced_posts = []
                     for post in posts:
-                        if self._check_image_resolution(post, min_resolution):
-                            filtered_posts.append(post)
-                        else:
-                            print(f"❌ Skipped post {post.get('shortcode', 'unknown')} - resolution too low")
+                        enhanced_post = self._enhance_image_urls(post)
+                        enhanced_posts.append(enhanced_post)
                     
-                    return filtered_posts
+                    return enhanced_posts
                 else:
                     print("❌ Could not find valid JSON output")
                     print(f"Raw output: {result.stdout[:500]}")
@@ -221,16 +275,61 @@ run();
             print(f"❌ Unexpected error: {e}")
             return []
     
-    def _check_image_resolution(self, post: Dict, min_resolution: int) -> bool:
-        """Check if post image meets minimum resolution requirements"""
+    def _enhance_image_url_quality(self, image_url: str) -> str:
+        """Enhance Instagram image URL to get higher quality"""
         try:
-            # For puppeteer scraping, we don't have dimension info, so accept all images
-            # The actual resolution check will be done during download
-            return True
+            if 'scontent' not in image_url or 'instagram.com' not in image_url:
+                return image_url
+            
+            # Parse URL parameters
+            from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+            
+            parsed = urlparse(image_url)
+            query_params = parse_qs(parsed.query)
+            
+            # Enhance quality parameters
+            if 'stp' in query_params:
+                # Replace low quality stp parameter with high quality
+                stp_value = query_params['stp'][0]
+                if 'e15' in stp_value:
+                    # Replace e15 (low quality) with e35 (high quality)
+                    stp_value = stp_value.replace('e15', 'e35')
+                elif 'e35' not in stp_value:
+                    # Add e35 if not present
+                    stp_value = stp_value.replace('dst-jpg', 'dst-jpg_e35')
+                
+                query_params['stp'] = [stp_value]
+            
+            # Add high quality parameters
+            if 'efg' not in query_params:
+                # Add high quality encoding parameters
+                query_params['efg'] = ['eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0uaW1hZ2VfdXJsZ2VuLjE0NDB4MTgwMC5zZHIuZjgyNzg3LmRlZmF1bHRfaW1hZ2UuYzIifQ']
+            
+            # Rebuild URL
+            new_query = urlencode(query_params, doseq=True)
+            enhanced_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+            
+            print(f"🔄 Enhanced image URL quality: {enhanced_url[:100]}...")
+            return enhanced_url
+            
+        except Exception as e:
+            print(f"❌ URL enhancement failed: {e}")
+            return image_url
+
+    def _enhance_image_urls(self, post: Dict) -> Dict:
+        """Enhance image URLs for higher quality (no resolution filtering)"""
+        try:
+            # Enhance image URL quality
+            if 'display_url' in post:
+                post['display_url'] = self._enhance_image_url_quality(post['display_url'])
+            if 'thumbnail_src' in post:
+                post['thumbnail_src'] = self._enhance_image_url_quality(post['thumbnail_src'])
+            
+            return post
                 
         except Exception as e:
-            print(f"Error checking resolution: {e}")
-            return False
+            print(f"Error enhancing URLs: {e}")
+            return post
     
     def get_user_info(self, username: str) -> Dict:
         """Get basic user information"""

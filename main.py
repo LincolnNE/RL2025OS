@@ -187,7 +187,7 @@ INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
 def test_firebase_connection():
     """Test Firebase configuration"""
     try:
-        from src.firebase_config import FirebaseManager
+        from config.firebase_config import FirebaseManager
         print("Testing Firebase connection...")
         fb_manager = FirebaseManager()
         print("✓ Firebase connection successful!")

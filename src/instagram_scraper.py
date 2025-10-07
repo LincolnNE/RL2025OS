@@ -11,7 +11,7 @@ import time
 from typing import Dict, List, Optional
 import argparse
 from datetime import datetime
-from firebase_config import FirebaseManager
+from config.firebase_config import FirebaseManager
 
 class InstagramScraper:
     def __init__(self):
@@ -135,29 +135,62 @@ class InstagramScraper:
             for i, post in enumerate(posts_data[:max_posts]):
                 node = post['node']
                 
-                # Get image URL
-                if node['__typename'] == 'GraphImage':
+                # Check for carousel (GraphSidecar)
+                if node['__typename'] == 'GraphSidecar':
+                    # Carousel album - extract all images from children
+                    children = node.get('edge_sidecar_to_children', {}).get('edges', [])
+                    
+                    for idx, child_edge in enumerate(children):
+                        child_node = child_edge.get('node', {})
+                        
+                        # Only process images (skip videos)
+                        if child_node.get('__typename') == 'GraphImage':
+                            post_data = {
+                                'id': f"{node['id']}_{idx}",
+                                'shortcode': node['shortcode'],
+                                'caption': node['edge_media_to_caption']['edges'][0]['node']['text'] if node['edge_media_to_caption']['edges'] else '',
+                                'image_url': child_node.get('display_url', ''),
+                                'likes_count': node['edge_liked_by']['count'],
+                                'comments_count': node['edge_media_to_comment']['count'],
+                                'timestamp': datetime.fromtimestamp(node['taken_at_timestamp']).isoformat(),
+                                'permalink': f"https://www.instagram.com/p/{node['shortcode']}/",
+                                'media_type': 'carousel',
+                                'carousel_index': idx + 1,
+                                'carousel_total': len(children)
+                            }
+                            posts.append(post_data)
+                
+                # Single image
+                elif node['__typename'] == 'GraphImage':
                     image_url = node['display_url']
+                    post_data = {
+                        'id': node['id'],
+                        'shortcode': node['shortcode'],
+                        'caption': node['edge_media_to_caption']['edges'][0]['node']['text'] if node['edge_media_to_caption']['edges'] else '',
+                        'image_url': image_url,
+                        'likes_count': node['edge_liked_by']['count'],
+                        'comments_count': node['edge_media_to_comment']['count'],
+                        'timestamp': datetime.fromtimestamp(node['taken_at_timestamp']).isoformat(),
+                        'permalink': f"https://www.instagram.com/p/{node['shortcode']}/",
+                        'media_type': node['__typename']
+                    }
+                    posts.append(post_data)
+                
+                # Video (keep single thumbnail)
                 elif node['__typename'] == 'GraphVideo':
                     image_url = node['display_url']
-                elif node['__typename'] == 'GraphSidecar':
-                    image_url = node['display_url']
-                else:
-                    continue
-                
-                post_data = {
-                    'id': node['id'],
-                    'shortcode': node['shortcode'],
-                    'caption': node['edge_media_to_caption']['edges'][0]['node']['text'] if node['edge_media_to_caption']['edges'] else '',
-                    'image_url': image_url,
-                    'likes_count': node['edge_liked_by']['count'],
-                    'comments_count': node['edge_media_to_comment']['count'],
-                    'timestamp': datetime.fromtimestamp(node['taken_at_timestamp']).isoformat(),
-                    'permalink': f"https://www.instagram.com/p/{node['shortcode']}/",
-                    'media_type': node['__typename']
-                }
-                
-                posts.append(post_data)
+                    post_data = {
+                        'id': node['id'],
+                        'shortcode': node['shortcode'],
+                        'caption': node['edge_media_to_caption']['edges'][0]['node']['text'] if node['edge_media_to_caption']['edges'] else '',
+                        'image_url': image_url,
+                        'likes_count': node['edge_liked_by']['count'],
+                        'comments_count': node['edge_media_to_comment']['count'],
+                        'timestamp': datetime.fromtimestamp(node['taken_at_timestamp']).isoformat(),
+                        'permalink': f"https://www.instagram.com/p/{node['shortcode']}/",
+                        'media_type': node['__typename']
+                    }
+                    posts.append(post_data)
             
             return posts
             
@@ -267,7 +300,11 @@ def main():
                 else:
                     date_str = f"post_{i+1}"
                 
-                filename = f"{args.username}_{date_str}.jpg"
+                # Add carousel index if it's a carousel post
+                if post.get('carousel_index'):
+                    filename = f"{args.username}_{date_str}_{post.get('carousel_index', '')}.jpg"
+                else:
+                    filename = f"{args.username}_{date_str}.jpg"
                 
                 try:
                     # Download locally if requested

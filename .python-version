@@ -1,0 +1,5 @@
+# Vercel 배포를 위한 런타임 설정
+# 이 파일은 Vercel이 Python 런타임을 올바르게 설정하도록 도와줍니다
+
+# Python 버전 지정 (선택사항)
+python-version: 3.9

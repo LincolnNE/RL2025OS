@@ -6,7 +6,7 @@ Firebase configuration and authentication
 import os
 import firebase_admin
 from firebase_admin import credentials, storage, firestore
-from config import Config
+from config.config import Config
 
 class FirebaseManager:
     def __init__(self):
@@ -77,7 +77,7 @@ class FirebaseManager:
             
             # Get file size for logging
             file_size = os.path.getsize(local_file_path)
-            print(f"📤 Uploading {os.path.basename(local_file_path)} ({file_size} bytes) to {remote_path}")
+            print(f"📤 Uploading {os.path.basename(local_file_path)} ({file_size:,} bytes) to {remote_path}")
             
             # Create blob and upload
             blob = self.bucket.blob(remote_path)
@@ -91,6 +91,49 @@ class FirebaseManager:
             
         except Exception as e:
             print(f"❌ Firebase Storage upload error: {e}")
+            raise
+    
+    def upload_video(self, local_file_path: str, remote_path: str) -> str:
+        """
+        Upload video to Firebase Storage
+        
+        Args:
+            local_file_path: Local file path
+            remote_path: Remote path in Firebase Storage
+            
+        Returns:
+            Download URL of uploaded file
+        """
+        try:
+            # Check if Firebase is initialized
+            if not self.bucket:
+                raise RuntimeError("Firebase Storage is not initialized. Please configure Firebase environment variables.")
+            
+            # Check if file exists
+            if not os.path.exists(local_file_path):
+                raise FileNotFoundError(f"Local file not found: {local_file_path}")
+            
+            # Get file size for logging
+            file_size = os.path.getsize(local_file_path)
+            print(f"🎥 Uploading video {os.path.basename(local_file_path)} ({file_size:,} bytes) to {remote_path}")
+            
+            # Create blob with video content type
+            blob = self.bucket.blob(remote_path)
+            
+            # Set content type for video
+            blob.content_type = 'video/mp4'
+            
+            # Upload the file
+            blob.upload_from_filename(local_file_path)
+            
+            # Make the blob publicly accessible
+            blob.make_public()
+            
+            print(f"✅ Video successfully uploaded to Firebase Storage: {blob.public_url}")
+            return blob.public_url
+            
+        except Exception as e:
+            print(f"❌ Firebase Video Storage upload error: {e}")
             raise
     
     def save_media_metadata(self, media_data: dict, download_url: str, user_id: str = None):
@@ -158,11 +201,14 @@ class FirebaseManager:
             if username:
                 query = query.where('username', '==', username)
             
-            # Order by upload date and limit
-            query = query.order_by('uploaded_at', direction=firestore.Query.DESCENDING).limit(limit)
+            # Get documents without ordering (to avoid index requirement)
+            docs = query.limit(limit).stream()
+            results = [doc.to_dict() for doc in docs]
             
-            docs = query.stream()
-            return [doc.to_dict() for doc in docs]
+            # Sort in Python instead of Firestore
+            results.sort(key=lambda x: x.get('uploaded_at', {}).get('_seconds', 0) if isinstance(x.get('uploaded_at'), dict) else 0, reverse=True)
+            
+            return results
         except Exception as e:
             print(f"Firestore read error: {e}")
             raise

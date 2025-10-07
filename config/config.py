@@ -26,6 +26,12 @@ class Config:
     RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
     INSTAGRAM_ACCESS_TOKEN = os.getenv('INSTAGRAM_ACCESS_TOKEN')
     
+    # Image Upscaling API settings
+    REPLICATE_API_TOKEN = os.getenv('REPLICATE_API_TOKEN')
+    DEEP_AI_API_KEY = os.getenv('DEEP_AI_API_KEY')
+    UPSCALE_MEDIA_API_KEY = os.getenv('UPSCALE_MEDIA_API_KEY')
+    LETS_ENHANCE_API_KEY = os.getenv('LETS_ENHANCE_API_KEY')
+    
     # Firebase settings
     FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID')
     FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET')

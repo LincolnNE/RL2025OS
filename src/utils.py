@@ -8,7 +8,7 @@ import hashlib
 from datetime import datetime
 from PIL import Image
 import requests
-from config import Config
+from config.config import Config
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -32,8 +32,53 @@ def generate_unique_filename(username, original_filename, timestamp=None):
     unique_filename = f"{username}_{timestamp}_{name}{ext}"
     return unique_filename
 
+def enhance_instagram_image_url(image_url: str) -> str:
+    """Enhance Instagram image URL to get higher quality"""
+    try:
+        if 'scontent' not in image_url or 'instagram.com' not in image_url:
+            return image_url
+        
+        # Parse URL parameters
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        
+        parsed = urlparse(image_url)
+        query_params = parse_qs(parsed.query)
+        
+        # Enhance quality parameters
+        if 'stp' in query_params:
+            # Replace low quality stp parameter with high quality
+            stp_value = query_params['stp'][0]
+            if 'e15' in stp_value:
+                # Replace e15 (low quality) with e35 (high quality)
+                stp_value = stp_value.replace('e15', 'e35')
+            elif 'e35' not in stp_value:
+                # Add e35 if not present
+                stp_value = stp_value.replace('dst-jpg', 'dst-jpg_e35')
+            
+            query_params['stp'] = [stp_value]
+        
+        # Add high quality parameters
+        if 'efg' not in query_params:
+            # Add high quality encoding parameters
+            query_params['efg'] = ['eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0uaW1hZ2VfdXJsZ2VuLjE0NDB4MTgwMC5zZHIuZjgyNzg3LmRlZmF1bHRfaW1hZ2UuYzIifQ']
+        
+        # Rebuild URL
+        new_query = urlencode(query_params, doseq=True)
+        enhanced_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+        
+        if enhanced_url != image_url:
+            print(f"🔄 Enhanced image URL quality: {enhanced_url[:100]}...")
+        return enhanced_url
+        
+    except Exception as e:
+        print(f"❌ URL enhancement failed: {e}")
+        return image_url
+
 def download_image_with_retry(url, local_path, max_retries=3, timeout=30):
-    """Download image with retry logic"""
+    """Download image with retry logic and quality enhancement"""
+    # Enhance Instagram URL quality first
+    enhanced_url = enhance_instagram_image_url(url)
+    
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
@@ -46,7 +91,7 @@ def download_image_with_retry(url, local_path, max_retries=3, timeout=30):
     
     for attempt in range(max_retries):
         try:
-            response = requests.get(url, headers=headers, timeout=timeout, stream=True)
+            response = requests.get(enhanced_url, headers=headers, timeout=timeout, stream=True)
             
             if response.status_code == 403:
                 print(f"❌ Access forbidden (403) for: {url[:50]}...")
@@ -73,7 +118,9 @@ def download_image_with_retry(url, local_path, max_retries=3, timeout=30):
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
             
-            print(f"✅ Downloaded: {local_path}")
+            # Log file size for quality comparison
+            file_size = os.path.getsize(local_path)
+            print(f"✅ Downloaded high-quality image: {file_size:,} bytes - {local_path}")
             return True
             
         except requests.exceptions.RequestException as e:
